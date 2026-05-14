@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>🔢 匿名抽号系统 | 代号抽取</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, 'Segoe UI', 'Inter', -apple-system, 'Roboto', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            background: linear-gradient(145deg, #1a2a3a 0%, #0f1a24 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .draw-card {
+            max-width: 950px;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(16px);
+            border-radius: 56px;
+            box-shadow: 0 25px 45px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+            transition: all 0.2s ease;
+        }
+
+        .card-header {
+            background: rgba(0, 0, 0, 0.3);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+            text-align: center;
+        }
+
+        .card-header h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #FFF9C4, #FFE6B0);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .card-header h1 span {
+            font-size: 2rem;
+        }
+
+        .sub {
+            color: #b9d0e7;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            opacity: 0.8;
+        }
+
+        .card-body {
+            padding: 2rem 1.8rem;
+        }
+
+        .settings-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1.3rem;
+            margin-bottom: 2rem;
+            background: rgba(0, 0, 0, 0.25);
+            border-radius: 2rem;
+            padding: 1.4rem 1.6rem;
+            align-items: flex-end;
+        }
+
+        .setting-item {
+            flex: 1;
+            min-width: 130px;
+        }
+
+        .setting-item label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #c0e0ff;
+            margin-bottom: 6px;
+        }
+
+        .setting-item input, .setting-item select {
+            width: 100%;
+            background: #0f1a1f;
+            border: 1px solid #2e4a62;
+            border-radius: 60px;
+            padding: 10px 16px;
+            font-size: 1rem;
+            font-weight: 500;
+            color: #f0f3f8;
+            transition: all 0.2s;
+            outline: none;
+        }
+
+        .setting-item input:focus {
+            border-color: #ffb347;
+            box-shadow: 0 0 0 2px rgba(255, 180, 71, 0.3);
+        }
+
+        .info-stats {
+            background: #0f1a1fcc;
+            border-radius: 40px;
+            padding: 10px 18px;
+            text-align: center;
+            font-weight: 500;
+            color: #ffdfb3;
+            border: 1px solid rgba(255, 180, 90, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            background: #0a1219;
+            border-radius: 60px;
+            padding: 4px 6px;
+            border: 1px solid #2e4a62;
+        }
+
+        .toggle-option {
+            flex: 1;
+            text-align: center;
+            padding: 7px 0;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: 0.2s;
+            background: transparent;
+            color: #9bb7d0;
+        }
+
+        .toggle-option.active {
+            background: #ffa559;
+            color: #0a1117;
+            box-shadow: 0 2px 8px rgba(255, 165, 89, 0.3);
+        }
+
+        .draw-area {
+            text-align: center;
+            margin: 20px 0 20px;
+        }
+
+        .draw-btn {
+            background: linear-gradient(120deg, #ff8c42, #ff5e7c);
+            border: none;
+            padding: 16px 32px;
+            font-size: 1.6rem;
+            font-weight: bold;
+            border-radius: 80px;
+            color: white;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.4);
+            display: inline-flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .draw-btn:active {
+            transform: scale(0.96);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+        }
+
+        .result-badge {
+            background: #010a10cc;
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            margin-top: 24px;
+            padding: 24px 16px;
+            border: 1px solid rgba(255, 210, 128, 0.4);
+        }
+
+        .result-label {
+            font-size: 0.8rem;
+            letter-spacing: 2px;
+            color: #ffd89a;
+        }
+
+        .current-numbers {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #ffecb3;
+            word-break: break-word;
+            line-height: 1.4;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .student-card {
+            background: #00000066;
+            backdrop-filter: blur(4px);
+            border-radius: 48px;
+            padding: 10px 20px;
+            font-family: monospace;
+            font-size: 1rem;
+            border-left: 3px solid #ffa559;
+            transition: 0.1s;
+        }
+
+        .info-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 1rem 0 1.2rem;
+            gap: 10px;
+        }
+
+        .remain-pool {
+            background: #17222b;
+            border-radius: 60px;
+            padding: 6px 16px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #b9e2ff;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 12px;
+        }
+
+        .action-btn {
+            background: rgba(30, 50, 70, 0.8);
+            border: 1px solid #4e6e8a;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #eef4ff;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #2e4f6e;
+            border-color: #ffb55a;
+        }
+
+        .history-section {
+            margin-top: 28px;
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            padding-top: 20px;
+        }
+
+        .history-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+
+        .history-title h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #fedb9f;
+        }
+
+        .clear-history {
+            background: none;
+            border: none;
+            color: #ffac6f;
+            font-size: 0.7rem;
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: underline;
+        }
+
+        .history-list {
+            max-height: 260px;
+            overflow-y: auto;
+            background: #0510164d;
+            border-radius: 28px;
+            padding: 12px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .history-item {
+            background: #0f1922;
+            border-radius: 36px;
+            padding: 8px 18px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-left: 4px solid #ffa559;
+            color: #e3eef9;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .history-numbers {
+            font-weight: 600;
+            font-family: monospace;
+            letter-spacing: 0.3px;
+            word-break: break-word;
+        }
+
+        .history-time {
+            font-size: 0.65rem;
+            color: #8aadcc;
+        }
+
+        .history-list::-webkit-scrollbar {
+            width: 5px;
+        }
+
+        .history-list::-webkit-scrollbar-track {
+            background: #0f1a24;
+            border-radius: 10px;
+        }
+
+        .history-list::-webkit-scrollbar-thumb {
+            background: #ffa559;
+            border-radius: 10px;
+        }
+
+        @media (max-width: 650px) {
+            .card-body {
+                padding: 1.3rem;
+            }
+            .settings-grid {
+                flex-direction: column;
+            }
+            .student-card {
+                font-size: 0.8rem;
+                padding: 6px 12px;
+            }
+            .current-numbers {
+                font-size: 1rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+<div class="draw-card">
+    <div class="card-header">
+        <h1>
+            <span>🔒</span> 匿名抽号系统 <span>✨</span>
+        </h1>
+        <div class="sub">基于匿名代号 · 隐私保护 · 不重复/可重复抽取</div>
+    </div>
+    <div class="card-body">
+        <div class="settings-grid">
+            <div class="setting-item">
+                <label>📚 抽号池</label>
+                <div class="info-stats" id="totalCountDisplay">👥 总代号数: 67</div>
+            </div>
+            <div class="setting-item">
+                <label>🎲 抽取数量</label>
+                <input type="number" id="drawCount" value="1" min="1" step="1">
+            </div>
+            <div class="setting-item">
+                <label>🔄 抽号模式</label>
+                <div class="toggle-group" id="modeToggle">
+                    <div class="toggle-option" data-mode="repeat">🔄 可重复</div>
+                    <div class="toggle-option active" data-mode="no-repeat">✨ 不重复</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="draw-area">
+            <button class="draw-btn" id="drawBtn">🎲 开始抽取代号 🎲</button>
+            <div class="result-badge">
+                <div class="result-label">🏆 本次抽中 🏆</div>
+                <div class="current-numbers" id="currentResult">—</div>
+            </div>
+        </div>
+
+        <div class="info-bar">
+            <div class="remain-pool" id="remainInfo">📦 剩余未抽: --</div>
+            <div class="action-buttons">
+                <button class="action-btn" id="resetPoolBtn">🔄 重置抽号池</button>
+                <button class="action-btn" id="clearHistoryBtn">🗑️ 清空历史</button>
+            </div>
+        </div>
+
+        <div class="history-section">
+            <div class="history-title">
+                <h3>📜 抽号历史记录</h3>
+                <button class="clear-history" id="quickClearHistory">清除记录</button>
+            </div>
+            <div class="history-list" id="historyList">
+                <div style="text-align:center;color:#6b8cae;padding:12px;">暂无抽号记录</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ---------- ★ 匿名数据（仅显示代号，无真实信息）★ ----------
+    // 使用 "ID_001" ~ "ID_067" 格式，共67个匿名条目
+    const ANONYMOUS_ITEMS = [];
+    for (let i = 1; i <= 67; i++) {
+        ANONYMOUS_ITEMS.push({
+            id: `ID_${String(i).padStart(3, '0')}`,
+            name: `参与者_${i}`
+        });
+    }
+    
+    // 注意：顺序与之前真实名单一一对应，但显示内容完全匿名。如需自定义别名，可修改上方循环逻辑。
+    // 例如：希望显示为“选手A001”等，均可自由调整。
+    
+    const FULL_ITEMS = [...ANONYMOUS_ITEMS];
+    const TOTAL_COUNT = FULL_ITEMS.length;
+    
+    // DOM 元素
+    const drawCountInput = document.getElementById('drawCount');
+    const drawBtn = document.getElementById('drawBtn');
+    const currentResultDiv = document.getElementById('currentResult');
+    const remainInfoSpan = document.getElementById('remainInfo');
+    const resetPoolBtn = document.getElementById('resetPoolBtn');
+    const clearHistoryBtn = document.getElementById('clearHistoryBtn');
+    const quickClearHistory = document.getElementById('quickClearHistory');
+    const historyContainer = document.getElementById('historyList');
+    const totalCountDisplay = document.getElementById('totalCountDisplay');
+    
+    const repeatOption = document.querySelector('[data-mode="repeat"]');
+    const noRepeatOption = document.querySelector('[data-mode="no-repeat"]');
+    
+    let allowRepeat = false;
+    let availableItems = [];
+    let drawHistory = [];
+    
+    function formatItem(item) {
+        return `${item.id}  ${item.name}`;
+    }
+    
+    function updateRemainDisplay() {
+        if (!allowRepeat) {
+            const remainCnt = availableItems.length;
+            remainInfoSpan.innerHTML = `🎯 不重复模式 · 剩余可抽: ${remainCnt} / ${TOTAL_COUNT}`;
+            if (remainCnt === 0) {
+                remainInfoSpan.style.color = "#ffab7b";
+                remainInfoSpan.style.fontWeight = "bold";
+            } else {
+                remainInfoSpan.style.color = "#b9e2ff";
+            }
+        } else {
+            remainInfoSpan.innerHTML = `♻️ 可重复模式 · 总池: ${TOTAL_COUNT} 个代号 (无限抽取)`;
+            remainInfoSpan.style.color = "#b0d4ff";
+        }
+    }
+    
+    function renderHistory() {
+        if (!historyContainer) return;
+        if (drawHistory.length === 0) {
+            historyContainer.innerHTML = `<div style="text-align:center;color:#6b8cae;padding:12px;">✨ 暂无抽号记录 ✨</div>`;
+            return;
+        }
+        const reversedHistory = [...drawHistory].reverse();
+        historyContainer.innerHTML = reversedHistory.map(record => `
+            <div class="history-item">
+                <span class="history-numbers">🔖 ${record.numbers}</span>
+                <span class="history-time">${record.timestamp}</span>
+            </div>
+        `).join('');
+    }
+    
+    function addHistoryRecord(itemsArray) {
+        if (!itemsArray || itemsArray.length === 0) return;
+        const displayStr = itemsArray.map(s => formatItem(s)).join(' ； ');
+        const now = new Date();
+        const timestamp = `${now.getMonth()+1}/${now.getDate()} ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}:${now.getSeconds().toString().padStart(2,'0')}`;
+        drawHistory.push({
+            numbers: displayStr,
+            timestamp: timestamp
+        });
+        renderHistory();
+    }
+    
+    function resetDrawPool() {
+        if (!allowRepeat) {
+            availableItems = FULL_ITEMS.map(s => ({ ...s }));
+        } else {
+            availableItems = [];
+        }
+        drawHistory = [];
+        renderHistory();
+        updateRemainDisplay();
+        currentResultDiv.innerHTML = '—';
+    }
+    
+    function clearHistoryOnly() {
+        drawHistory = [];
+        renderHistory();
+    }
+    
+    function drawWithoutReplacement(count) {
+        if (count <= 0) return [];
+        if (count > availableItems.length) count = availableItems.length;
+        const result = [];
+        for (let i = 0; i < count; i++) {
+            if (availableItems.length === 0) break;
+            const randomIndex = Math.floor(Math.random() * availableItems.length);
+            const drawn = availableItems.splice(randomIndex, 1)[0];
+            result.push(drawn);
+        }
+        return result;
+    }
+    
+    function drawWithReplacement(count) {
+        if (count <= 0) return [];
+        const result = [];
+        for (let i = 0; i < count; i++) {
+            const randomIndex = Math.floor(Math.random() * FULL_ITEMS.length);
+            result.push({ ...FULL_ITEMS[randomIndex] });
+        }
+        return result;
+    }
+    
+    function performDraw() {
+        let rawCount = parseInt(drawCountInput.value, 10);
+        if (isNaN(rawCount) || rawCount < 1) rawCount = 1;
+        
+        let finalCount = rawCount;
+        if (allowRepeat && rawCount > 200) {
+            finalCount = 200;
+            currentResultDiv.innerHTML = `⚠️ 单次最多抽取200个代号，已限制为200`;
+            setTimeout(() => {
+                if (currentResultDiv.innerHTML.includes("限制")) currentResultDiv.innerHTML = '—';
+            }, 1200);
+        }
+        
+        if (!allowRepeat) {
+            if (availableItems.length === 0) {
+                currentResultDiv.innerHTML = '❌ 没有剩余代号，请点击「重置抽号池」';
+                return;
+            }
+            if (finalCount > availableItems.length) {
+                finalCount = availableItems.length;
+                currentResultDiv.innerHTML = `⚠️ 剩余代号不足，抽取数量调整为 ${finalCount}`;
+                setTimeout(() => {
+                    if (currentResultDiv.innerHTML.includes("调整为")) currentResultDiv.innerHTML = '—';
+                }, 1500);
+            }
+        }
+        
+        if (finalCount <= 0) {
+            currentResultDiv.innerHTML = '⚠️ 无效抽取数量';
+            return;
+        }
+        
+        let drawnItems = [];
+        if (!allowRepeat) {
+            drawnItems = drawWithoutReplacement(finalCount);
+        } else {
+            drawnItems = drawWithReplacement(finalCount);
+        }
+        
+        if (drawnItems.length === 0) {
+            currentResultDiv.innerHTML = '⚠️ 抽取失败，请重试';
+            return;
+        }
+        
+        if (drawnItems.length === 1) {
+            currentResultDiv.innerHTML = `<div class="student-card">🎯 ${formatItem(drawnItems[0])} 🎯</div>`;
+        } else {
+            const cardsHtml = drawnItems.map(s => `<div class="student-card">📌 ${formatItem(s)}</div>`).join('');
+            currentResultDiv.innerHTML = `<div style="display:flex;flex-wrap:wrap;justify-content:center;gap:12px;">${cardsHtml}</div>`;
+        }
+        
+        addHistoryRecord(drawnItems);
+        updateRemainDisplay();
+        
+        if (!allowRepeat && availableItems.length === 0) {
+            setTimeout(() => {
+                if(remainInfoSpan) remainInfoSpan.style.opacity = '0.9';
+            }, 50);
+        }
+    }
+    
+    function setMode(repeatMode) {
+        allowRepeat = repeatMode;
+        if (repeatMode) {
+            repeatOption.classList.add('active');
+            noRepeatOption.classList.remove('active');
+            availableItems = [];
+        } else {
+            noRepeatOption.classList.add('active');
+            repeatOption.classList.remove('active');
+            availableItems = FULL_ITEMS.map(s => ({ ...s }));
+        }
+        drawHistory = [];
+        renderHistory();
+        updateRemainDisplay();
+        currentResultDiv.innerHTML = '—';
+    }
+    
+    function handleResetPool() {
+        if (!allowRepeat) {
+            availableItems = FULL_ITEMS.map(s => ({ ...s }));
+        } else {
+            availableItems = [];
+        }
+        drawHistory = [];
+        renderHistory();
+        updateRemainDisplay();
+        currentResultDiv.innerHTML = '—';
+    }
+    
+    function initEventListeners() {
+        drawBtn.addEventListener('click', performDraw);
+        resetPoolBtn.addEventListener('click', handleResetPool);
+        clearHistoryBtn.addEventListener('click', clearHistoryOnly);
+        quickClearHistory.addEventListener('click', clearHistoryOnly);
+        
+        repeatOption.addEventListener('click', () => setMode(true));
+        noRepeatOption.addEventListener('click', () => setMode(false));
+        
+        drawCountInput.addEventListener('change', () => {
+            let val = parseInt(drawCountInput.value, 10);
+            if (isNaN(val) || val < 1) drawCountInput.value = 1;
+        });
+    }
+    
+    function init() {
+        totalCountDisplay.innerHTML = `👥 总代号数: ${TOTAL_COUNT}`;
+        allowRepeat = false;
+        availableItems = FULL_ITEMS.map(s => ({ ...s }));
+        drawHistory = [];
+        renderHistory();
+        updateRemainDisplay();
+        currentResultDiv.innerHTML = '—';
+        noRepeatOption.classList.add('active');
+        repeatOption.classList.remove('active');
+        initEventListeners();
+    }
+    
+    init();
+</script>
+</body>
+</html>
+```
